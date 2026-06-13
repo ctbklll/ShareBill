@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หารตามจริง - เครื่องมือคิดเงินและหารค่าบิลสำหรับสายปาร์ตี้</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Kanit', sans-serif; }
+        
+        /* ซ่อนลูกศรขึ้นลงในช่อง input number บนมือถือเพื่อให้ดูสะอาดตา */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
+        /* ส่วนทำให้กล่องใบเสร็จฝั่งขวาสามารถเลื่อน (Scroll) ได้ถ้ายาวเกินจอคอม */
+        @media (min-width: 1024px) {
+            .receipt-scroll {
+                max-height: calc(100vh - 3rem);
+                overflow-y: auto;
+                padding-right: 8px;
+            }
+            .receipt-scroll::-webkit-scrollbar {
+                width: 6px;
+            }
+            .receipt-scroll::-webkit-scrollbar-thumb {
+                background-color: #c7d2fe; /* สี scrollbar ให้เข้าธีม */
+                border-radius: 10px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-slate-50 to-purple-50 min-h-screen text-slate-800 pb-24">
+
+    <div class="max-w-6xl mx-auto p-3 sm:p-6">
+        <header class="flex flex-col justify-center items-center bg-gradient-to-r from-indigo-600 to-violet-600 text-white p-6 sm:p-8 rounded-3xl shadow-xl shadow-indigo-200 mb-6 sm:mb-8 relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+            
+            <div class="flex items-center gap-3 relative z-10">
+                <span class="text-4xl drop-shadow-md">🥂</span>
+                <h1 class="text-3xl sm:text-4xl font-bold tracking-wider drop-shadow-md">SHAREBILL</h1>
+            </div>
+            <p class="text-indigo-100 text-sm sm:text-base mt-2 font-medium relative z-10">หารตามจริง - จบปัญหาเพื่อนกินไม่เท่ากัน</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+            
+            <div class="lg:col-span-2 space-y-6 sm:space-y-8">
+                
+                <div class="bg-white/80 backdrop-blur-md p-5 sm:p-7 rounded-3xl shadow-lg shadow-indigo-100/50 border border-white">
+                    <h2 class="text-base sm:text-lg font-bold text-indigo-900 flex items-center gap-2 mb-5">
+                        <span class="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg text-sm">⚙️</span> ตั้งค่าบิลร้านอาหาร
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 transition focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100">
+                            <label class="block text-[11px] sm:text-xs font-semibold text-slate-500 mb-1.5 text-center">Service Charge (%)</label>
+                            <input type="number" id="scRate" value="10" oninput="calculateBill()" class="w-full bg-transparent focus:outline-none text-base sm:text-lg font-bold text-slate-800 text-center">
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 transition focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100">
+                            <label class="block text-[11px] sm:text-xs font-semibold text-slate-500 mb-1.5 text-center">VAT (%)</label>
+                            <input type="number" id="vatRate" value="7" oninput="calculateBill()" class="w-full bg-transparent focus:outline-none text-base sm:text-lg font-bold text-slate-800 text-center">
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 transition focus-within:border-pink-300 focus-within:ring-2 focus-within:ring-pink-100">
+                            <label class="block text-[11px] sm:text-xs font-semibold text-pink-500 mb-1.5 text-center">ลดท้ายบิล (%)</label>
+                            <input type="number" id="discountPercent" value="0" oninput="calculateBill()" class="w-full bg-transparent focus:outline-none text-base sm:text-lg font-bold text-pink-600 text-center" placeholder="0">
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 transition focus-within:border-pink-300 focus-within:ring-2 focus-within:ring-pink-100">
+                            <label class="block text-[11px] sm:text-xs font-semibold text-pink-500 mb-1.5 text-center">ลดท้ายบิล (บาท)</label>
+                            <input type="number" id="discountBaht" value="0" oninput="calculateBill()" class="w-full bg-transparent focus:outline-none text-base sm:text-lg font-bold text-pink-600 text-center" placeholder="0">
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-slate-100 pt-5 mt-5">
+                        <label class="block text-sm font-bold text-indigo-900 mb-2.5">📸 แนบรูปภาพ QR Code รับเงิน</label>
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                            <div class="w-full relative">
+                                <input type="file" id="qrUploadInput" accept="image/*" onchange="handleQRUpload(this)" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 hover:file:text-indigo-800 cursor-pointer transition-colors bg-slate-50 rounded-2xl border border-slate-200">
+                            </div>
+                            <button id="clearQRBtn" onclick="clearUploadedQR()" class="hidden w-full sm:w-auto text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-5 py-3 rounded-xl font-bold transition-colors whitespace-nowrap">❌ ลบรูปภาพ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white/80 backdrop-blur-md p-5 sm:p-7 rounded-3xl shadow-lg shadow-indigo-100/50 border border-white">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-3">
+                        <h2 class="text-base sm:text-lg font-bold text-indigo-900 flex items-center gap-2">
+                            <span class="bg-violet-100 text-violet-600 p-1.5 rounded-lg text-sm">👥</span> เพื่อนร่วมวง
+                        </h2>
+                        <button onclick="openMemberModal()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-sm w-full sm:w-auto justify-center active:scale-95">
+                            <span class="text-lg leading-none">+</span> เพิ่มเพื่อน
+                        </button>
+                    </div>
+                    <div id="membersContainer" class="flex flex-wrap gap-2.5"></div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 px-1">
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold text-indigo-900 flex items-center gap-2">
+                                <span class="bg-amber-100 text-amber-600 p-1.5 rounded-lg text-sm">🍔</span> เมนูอาหาร
+                            </h2>
+                            <p class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 ml-9">อย่าลืม!! กดเลือกชื่อเพื่อนใต้เมนูเพื่อแบ่งจ่าย</p>
+                        </div>
+                        <button onclick="openItemModal()" class="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition shadow-lg shadow-orange-200 flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-center active:scale-95">
+                            <span class="text-lg leading-none">+</span> เพิ่มเมนู
+                        </button>
+                    </div>
+                    <div id="itemsContainer" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1 mt-6 lg:mt-0">
+                <div class="lg:sticky lg:top-6 space-y-5 receipt-scroll">
+                    
+                    <div id="receiptCard" class="bg-white rounded-3xl shadow-2xl shadow-indigo-200/60 overflow-hidden relative border border-slate-100">
+                        <div class="h-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-full"></div>
+                        
+                        <div class="p-6 sm:p-8">
+                            <div class="text-center border-b-2 border-dashed border-slate-200 pb-5 mb-5">
+                                <h3 class="text-xl sm:text-2xl font-extrabold tracking-widest text-indigo-950 uppercase">RECEIPT</h3>
+                                <p class="text-[10px] sm:text-xs text-slate-400 mt-1.5 font-medium" id="receiptDate">วันที่คิดเงิน</p>
+                            </div>
+
+                            <div id="receiptTotals" class="space-y-4 mb-5 min-h-[80px]">
+                                </div>
+
+                            <div class="border-t-2 border-dashed border-slate-200 pt-5 text-xs sm:text-sm space-y-2.5 text-slate-500 font-medium mb-5">
+                                <div class="flex justify-between">
+                                    <span>ยอดรวมอาหารดิบ:</span>
+                                    <span id="summaryRawSubtotal" class="text-slate-800">0.00.-</span>
+                                </div>
+                                <div id="summaryItemDiscountRow" class="flex justify-between text-pink-500 hidden">
+                                    <span>ส่วนลดรายเมนู:</span>
+                                    <span id="summaryItemDiscount">-0.00.-</span>
+                                </div>
+                                <div id="summaryDiscountRow" class="flex justify-between text-pink-500 hidden">
+                                    <span>ส่วนลดท้ายบิล:</span>
+                                    <span id="summaryDiscount">-0.00.-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Service Charge:</span>
+                                    <span id="summarySC" class="text-slate-800">0.00.-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>VAT:</span>
+                                    <span id="summaryVat" class="text-slate-800">0.00.-</span>
+                                </div>
+                                
+                                <div class="flex justify-between items-end text-base sm:text-xl font-black text-indigo-950 pt-4 mt-2 border-t border-slate-100">
+                                    <span class="mb-0.5">ยอดสุทธิรวม:</span>
+                                    <span id="summaryTotal" class="text-indigo-600 text-2xl sm:text-3xl">0.00 <span class="text-sm font-bold">฿</span></span>
+                                </div>
+                            </div>
+
+                            <div id="receiptQRCodeContainer" class="border-t-2 border-dashed border-slate-200 pt-6 mt-2 flex flex-col items-center justify-center hidden overflow-hidden">
+                                <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold mb-4 uppercase tracking-wider">Scan to Pay</span>
+                                <div class="p-2 bg-white border-2 border-slate-100 rounded-2xl shadow-inner">
+                                    <img id="receiptQRImg" src="" alt="Uploaded QR Code" class="w-52 h-52 sm:w-64 sm:h-64 object-contain rounded-xl">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="downloadReceipt()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-2xl shadow-xl shadow-indigo-300 transition-all flex items-center justify-center gap-2 active:scale-95 text-sm sm:text-base border border-indigo-400/50 relative overflow-hidden group">
+                        <span class="absolute w-0 h-0 transition-all duration-500 ease-out bg-white rounded-full group-hover:w-56 group-hover:h-56 opacity-10"></span>
+                        <span class="relative">📥 บันทึกบิลเป็นรูปภาพ</span>
+                    </button>
+                    
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="memberModal" class="fixed inset-0 bg-indigo-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white p-6 sm:p-8 rounded-[2rem] shadow-2xl border border-white max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-indigo-900 flex items-center gap-2">
+                    <span class="bg-indigo-100 text-indigo-600 p-2 rounded-xl text-lg">👤</span> เพิ่มเพื่อน
+                </h3>
+                <button onclick="closeMemberModal()" class="text-slate-400 hover:text-rose-500 bg-slate-50 hover:bg-rose-50 w-10 h-10 rounded-full flex items-center justify-center font-bold transition text-lg">&times;</button>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">ชื่อ / ชื่อเล่น</label>
+                    <input type="text" id="newMemberName" placeholder="เช่น Alice, Bob" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-base font-medium transition-all" onkeydown="if(event.key === 'Enter') submitMember()">
+                    <p id="modalError" class="text-xs font-medium text-rose-500 mt-2 hidden">⚠️ ชื่อนี้มีอยู่ในวงแล้ว หรือคุณลืมพิมพ์ชื่อ</p>
+                </div>
+                
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeMemberModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-2xl text-sm transition">ยกเลิก</button>
+                    <button onclick="submitMember()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-2xl text-sm transition shadow-lg shadow-indigo-200">บันทึก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="itemModal" class="fixed inset-0 bg-indigo-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white p-6 sm:p-8 rounded-[2rem] shadow-2xl border border-white max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-indigo-900 flex items-center gap-2">
+                    <span class="bg-amber-100 text-amber-600 p-2 rounded-xl text-lg">🍔</span> เพิ่มเมนู
+                </h3>
+                <button onclick="closeItemModal()" class="text-slate-400 hover:text-rose-500 bg-slate-50 hover:bg-rose-50 w-10 h-10 rounded-full flex items-center justify-center font-bold transition text-lg">&times;</button>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">ชื่อรายการอาหาร</label>
+                    <input type="text" id="newItemName" placeholder="เช่น หมูกรอบคั่วพริกเกลือ" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-base font-medium transition-all" onkeydown="if(event.key === 'Enter') submitItem()">
+                    <p id="itemModalError" class="text-xs font-medium text-rose-500 mt-2 hidden">⚠️ กรุณาระบุชื่อเมนูอาหาร</p>
+                </div>
+                
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeItemModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-2xl text-sm transition">ยกเลิก</button>
+                    <button onclick="submitItem()" class="flex-1 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold py-3.5 rounded-2xl text-sm transition shadow-lg shadow-orange-200">สร้างรายการ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // เริ่มต้นด้วย State ว่างเปล่า
+        let members = [];
+        let items = [];
+
+        let uploadedQRBase64 = "";
+
+        const updateDate = () => {
+            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            document.getElementById('receiptDate').innerText = new Date().toLocaleDateString('th-TH', options);
+        };
+        updateDate();
+
+        function handleQRUpload(input) {
+            const file = input.files[0];
+            const clearBtn = document.getElementById('clearQRBtn');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedQRBase64 = e.target.result;
+                    clearBtn.classList.remove('hidden');
+                    calculateBill();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearUploadedQR() {
+            document.getElementById('qrUploadInput').value = "";
+            uploadedQRBase64 = "";
+            document.getElementById('clearQRBtn').classList.add('hidden');
+            calculateBill();
+        }
+
+        function openMemberModal() {
+            const modal = document.getElementById('memberModal');
+            const input = document.getElementById('newMemberName');
+            const error = document.getElementById('modalError');
+            error.classList.add('hidden');
+            input.value = '';
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('div').classList.remove('scale-95');
+                input.focus();
+            }, 10);
+        }
+
+        function closeMemberModal() {
+            const modal = document.getElementById('memberModal');
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function submitMember() {
+            const input = document.getElementById('newMemberName');
+            const error = document.getElementById('modalError');
+            const name = input.value.trim();
+
+            if (name === "" || members.includes(name)) {
+                error.classList.remove('hidden');
+                return;
+            }
+
+            members.push(name);
+            renderMembers();
+            renderItems();
+            calculateBill();
+            closeMemberModal();
+        }
+
+        function renderMembers() {
+            const container = document.getElementById('membersContainer');
+            if (members.length === 0) {
+                container.innerHTML = `<div class="text-slate-400 text-sm font-medium italic py-2 pl-2">ยังไม่มีรายชื่อเพื่อนในวง กดปุ่ม "+ เพิ่มเพื่อน" ได้เลย!</div>`;
+                return;
+            }
+            container.innerHTML = members.map((m, index) => `
+                <div class="inline-flex items-center gap-1.5 bg-white border-2 border-indigo-100 text-indigo-900 text-sm pl-4 pr-1.5 py-1.5 rounded-full shadow-sm hover:border-indigo-300 transition group">
+                    <span class="font-bold">${m}</span>
+                    <button onclick="deleteMember(${index})" class="text-slate-400 hover:text-white hover:bg-rose-500 bg-slate-100 w-7 h-7 rounded-full flex items-center justify-center font-bold ml-1 transition" title="ลบชื่อคนนี้">×</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteMember(index) {
+            const nameToRemove = members[index];
+            members.splice(index, 1);
+            items.forEach(item => {
+                item.sharers = item.sharers.filter(s => s !== nameToRemove);
+            });
+            renderMembers();
+            renderItems();
+            calculateBill();
+        }
+
+        /* ----- ระบบ Modal ของการเพิ่มเมนูอาหาร ----- */
+        function openItemModal() {
+            const modal = document.getElementById('itemModal');
+            const input = document.getElementById('newItemName');
+            const error = document.getElementById('itemModalError');
+            error.classList.add('hidden');
+            input.value = ''; 
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('div').classList.remove('scale-95');
+                input.focus(); 
+            }, 10);
+        }
+
+        function closeItemModal() {
+            const modal = document.getElementById('itemModal');
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function submitItem() {
+            const input = document.getElementById('newItemName');
+            const error = document.getElementById('itemModalError');
+            const name = input.value.trim();
+
+            if (name === "") {
+                error.classList.remove('hidden');
+                return; 
+            }
+
+            addItem(name);
+            closeItemModal();
+        }
+
+        function renderItems() {
+            const container = document.getElementById('itemsContainer');
+            if(items.length === 0) {
+                container.innerHTML = `<div class="text-center p-10 bg-white rounded-3xl border-2 border-dashed border-indigo-100 text-indigo-300 font-medium">ยังไม่มีรายการอาหาร เริ่มเพิ่มเมนูได้เลย!</div>`;
+                return;
+            }
+
+            container.innerHTML = items.map((item) => {
+                return `
+                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-4 hover:shadow-md hover:border-indigo-50 transition-all">
+                        
+                        <div class="flex justify-between items-center gap-3">
+                            <div class="w-full relative">
+                                <input type="text" value="${item.name}" onchange="updateItemName(${item.id}, this.value)" class="w-full font-bold text-slate-800 bg-slate-50 border border-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:bg-white rounded-xl py-2 px-3 text-base transition-all" placeholder="ระบุชื่อเมนู...">
+                            </div>
+                            <button onclick="deleteItem(${item.id})" class="text-slate-400 hover:text-rose-600 bg-slate-50 hover:bg-rose-50 p-2.5 rounded-xl transition" title="ลบรายการนี้">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="bg-slate-50 p-2.5 rounded-2xl border border-slate-100 focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100 transition">
+                                <label class="block text-[10px] sm:text-xs font-bold text-slate-400 mb-1">ราคา (฿)</label>
+                                <input type="number" value="${item.price === 0 ? '' : item.price}" oninput="updateItemPrice(${item.id}, this.value)" class="w-full font-black text-slate-700 bg-transparent focus:outline-none text-right text-base sm:text-lg" placeholder="0">
+                            </div>
+                            <div class="bg-pink-50/50 p-2.5 rounded-2xl border border-pink-100 focus-within:border-pink-300 focus-within:ring-2 focus-within:ring-pink-100 transition">
+                                <label class="block text-[10px] sm:text-xs font-bold text-pink-400 mb-1">ลด (บาท)</label>
+                                <input type="number" value="${item.itemDiscountBaht === 0 ? '' : item.itemDiscountBaht}" oninput="updateItemDiscountBaht(${item.id}, this.value)" class="w-full font-bold text-pink-600 bg-transparent focus:outline-none text-right text-sm sm:text-base" placeholder="0">
+                            </div>
+                            <div class="bg-pink-50/50 p-2.5 rounded-2xl border border-pink-100 focus-within:border-pink-300 focus-within:ring-2 focus-within:ring-pink-100 transition">
+                                <label class="block text-[10px] sm:text-xs font-bold text-pink-400 mb-1">ลด (%)</label>
+                                <input type="number" value="${item.itemDiscountPercent === 0 ? '' : item.itemDiscountPercent}" oninput="updateItemDiscountPercent(${item.id}, this.value)" class="w-full font-bold text-pink-600 bg-transparent focus:outline-none text-right text-sm sm:text-base" placeholder="0">
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 pt-1">
+                            ${members.length === 0 ? '<span class="text-xs text-rose-500 font-medium italic mt-1">⚠️ กรุณาเพิ่มเพื่อนเพื่อเริ่มหารบิล</span>' : members.map(m => {
+                                const isChecked = item.sharers.includes(m);
+                                return `
+                                    <button onclick="toggleSharer(${item.id}, '${m}')" class="text-xs px-3.5 py-2 rounded-xl font-bold transition-all active:scale-95 border-2 ${isChecked ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' : 'bg-white text-slate-500 hover:bg-slate-50 border-slate-200 hover:border-slate-300'}">
+                                        ${m}
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                        
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // แก้ไข: ตอนเพิ่มเมนูใหม่ ให้ sharers เป็น Array ว่างเปล่า [] เพื่อให้ผู้ใช้คลิกเลือกเอง
+        function addItem(menuName) {
+            const id = Date.now();
+            items.push({ 
+                id: id, 
+                name: menuName || `เมนูใหม่`, 
+                price: 0, 
+                itemDiscountBaht: 0, 
+                itemDiscountPercent: 0, 
+                sharers: [] // <--- ปรับแก้ตรงนี้ให้เริ่มต้นเป็น Array ว่าง
+            });
+            renderItems();
+            calculateBill();
+        }
+
+        function deleteItem(id) {
+            items = items.filter(item => item.id !== id);
+            renderItems();
+            calculateBill();
+        }
+
+        function updateItemName(id, value) {
+            const item = items.find(i => i.id === id);
+            if(item) item.name = value;
+        }
+
+        function updateItemPrice(id, value) {
+            const item = items.find(i => i.id === id);
+            if(item) {
+                item.price = parseFloat(value) || 0;
+                calculateBill();
+            }
+        }
+
+        function updateItemDiscountBaht(id, value) {
+            const item = items.find(i => i.id === id);
+            if(item) {
+                item.itemDiscountBaht = parseFloat(value) || 0;
+                calculateBill();
+            }
+        }
+
+        function updateItemDiscountPercent(id, value) {
+            const item = items.find(i => i.id === id);
+            if(item) {
+                item.itemDiscountPercent = parseFloat(value) || 0;
+                calculateBill();
+            }
+        }
+
+        function toggleSharer(itemId, memberName) {
+            const item = items.find(i => i.id === itemId);
+            if(item) {
+                if(item.sharers.includes(memberName)) {
+                    item.sharers = item.sharers.filter(s => s !== memberName);
+                } else {
+                    item.sharers.push(memberName);
+                }
+                renderItems();
+                calculateBill();
+            }
+        }
+
+        function calculateBill() {
+            let scRate = parseFloat(document.getElementById('scRate').value) || 0;
+            let vatRate = parseFloat(document.getElementById('vatRate').value) || 0;
+            let discountPercent = parseFloat(document.getElementById('discountPercent').value) || 0;
+            let discountBaht = parseFloat(document.getElementById('discountBaht').value) || 0;
+
+            let totalFoodRawPrice = items.reduce((sum, item) => sum + item.price, 0);
+            let totalItemDiscountCombined = 0;
+            
+            let memberSubtotals = {};
+            members.forEach(m => memberSubtotals[m] = 0);
+
+            items.forEach(item => {
+                let discountFromPercent = item.price * (item.itemDiscountPercent / 100);
+                let currentItemDiscount = discountFromPercent + item.itemDiscountBaht;
+                totalItemDiscountCombined += currentItemDiscount;
+
+                let adjustedItemPrice = Math.max(0, item.price - currentItemDiscount);
+
+                if(item.sharers.length > 0) {
+                    let sharePrice = adjustedItemPrice / item.sharers.length;
+                    item.sharers.forEach(sharer => {
+                        if(memberSubtotals[sharer] !== undefined) {
+                            memberSubtotals[sharer] += sharePrice;
+                        }
+                    });
+                }
+            });
+
+            let totalAdjustedFoodPrice = items.reduce((sum, item) => {
+                let currentDiscount = (item.price * (item.itemDiscountPercent / 100)) + item.itemDiscountBaht;
+                return sum + Math.max(0, item.price - currentDiscount);
+            }, 0);
+
+            let finalBillDiscountFromPercent = totalAdjustedFoodPrice * (discountPercent / 100);
+            let totalFinalBillDiscount = finalBillDiscountFromPercent + discountBaht;
+
+            let memberFinalDiscounts = {};
+            members.forEach(m => {
+                let ratio = totalAdjustedFoodPrice > 0 ? (memberSubtotals[m] / totalAdjustedFoodPrice) : 0;
+                memberFinalDiscounts[m] = totalFinalBillDiscount * ratio;
+            });
+
+            let scMultiplier = 1 + (scRate / 100);
+            let vatMultiplier = 1 + (vatRate / 100);
+            let taxMultiplier = scMultiplier * vatMultiplier;
+
+            const receiptTotalsContainer = document.getElementById('receiptTotals');
+            let htmlReceipt = '';
+
+            let totalBillNet = 0;
+            let totalBillSC = 0;
+            let totalBillVat = 0;
+
+            members.forEach(m => {
+                let subtotalAfterItemDiscount = memberSubtotals[m]; 
+                let finalBillDiscountForPerson = memberFinalDiscounts[m];
+                let subtotalAfterAllDiscounts = Math.max(0, subtotalAfterItemDiscount - finalBillDiscountForPerson);
+
+                let personSC = subtotalAfterAllDiscounts * (scRate / 100);
+                let personVat = (subtotalAfterAllDiscounts + personSC) * (vatRate / 100);
+                let personNet = subtotalAfterAllDiscounts * taxMultiplier;
+
+                totalBillNet += personNet;
+                totalBillSC += personSC;
+                totalBillVat += personVat;
+
+                if (personNet > 0) {
+                    htmlReceipt += `
+                        <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+                            <div>
+                                <span class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> ${m}</span>
+                                <div class="text-[11px] text-slate-400 mt-1 pl-3">สุทธิก่อนภาษี: ${subtotalAfterItemDiscount.toFixed(2)} บ.</div>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-black text-indigo-900 text-base sm:text-lg">${personNet.toFixed(2)} ฿</span>
+                                <div class="text-[10px] text-slate-400 font-medium">(Vat/SC: ${(personSC + personVat).toFixed(2)} บ.)</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            receiptTotalsContainer.innerHTML = htmlReceipt || `<div class="text-center text-slate-300 py-6 text-sm font-medium">ยังไม่มีข้อมูลการสรุปยอดบิล</div>`;
+
+            document.getElementById('summaryRawSubtotal').innerText = totalFoodRawPrice.toFixed(2) + '.-';
+            
+            const itemDiscRow = document.getElementById('summaryItemDiscountRow');
+            if (totalItemDiscountCombined > 0) {
+                itemDiscRow.classList.remove('hidden');
+                document.getElementById('summaryItemDiscount').innerText = `-${totalItemDiscountCombined.toFixed(2)}.-`;
+            } else {
+                itemDiscRow.classList.add('hidden');
+            }
+
+            const finalDiscRow = document.getElementById('summaryDiscountRow');
+            if(totalFinalBillDiscount > 0) {
+                finalDiscRow.classList.remove('hidden');
+                document.getElementById('summaryDiscount').innerText = `-${totalFinalBillDiscount.toFixed(2)}.-`;
+            } else {
+                finalDiscRow.classList.add('hidden');
+            }
+
+            document.getElementById('summarySC').innerText = totalBillSC.toFixed(2) + '.-';
+            document.getElementById('summaryVat').innerText = totalBillVat.toFixed(2) + '.-';
+            document.getElementById('summaryTotal').innerHTML = `${totalBillNet.toFixed(2)} <span class="text-sm font-bold text-indigo-400">฿</span>`;
+
+            const qrContainer = document.getElementById('receiptQRCodeContainer');
+            const qrImg = document.getElementById('receiptQRImg');
+
+            if (uploadedQRBase64 !== "") {
+                qrImg.src = uploadedQRBase64;
+                qrContainer.classList.remove('hidden');
+            } else {
+                qrContainer.classList.add('hidden');
+                qrImg.src = "";
+            }
+        }
+
+        function downloadReceipt() {
+            updateDate();
+            const receipt = document.getElementById('receiptCard');
+            
+            // ยกเลิกโค้งมนตอนแคปเพื่อให้ขอบภาพชัดเป๊ะ
+            receipt.style.borderRadius = '0px';
+            receipt.style.border = 'none';
+            
+            html2canvas(receipt, {
+                scale: 3, 
+                backgroundColor: "#ffffff",
+                logging: false,
+                useCORS: true 
+            }).then(canvas => {
+                // คืนค่า UI กลับมาเหมือนเดิม
+                receipt.style.borderRadius = '1.5rem';
+                receipt.style.border = '1px solid #f1f5f9';
+
+                const link = document.createElement('a');
+                link.download = `ShareBill_${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        renderMembers();
+        renderItems();
+        calculateBill();
+    </script>
+</body>
+</html>
