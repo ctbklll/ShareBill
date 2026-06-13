@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShareBill</title>
+    <title>ShareBill - หารตามจริง</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -121,55 +121,60 @@
                     <div id="receiptCard" class="bg-white rounded-3xl shadow-2xl shadow-indigo-200/60 overflow-hidden relative border border-slate-100">
                         <div class="h-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-full"></div>
                         
-                        <div class="p-6 sm:p-8">
-                            <div class="text-center border-b-2 border-dashed border-slate-200 pb-5 mb-5">
-                                <h3 class="text-xl sm:text-2xl font-extrabold tracking-widest text-indigo-950 uppercase">RECEIPT</h3>
-                                <p class="text-[10px] sm:text-xs text-slate-400 mt-1.5 font-medium" id="receiptDate">วันที่คิดเงิน</p>
+                        <div class="px-8 py-10 sm:px-10 sm:py-12 bg-white">
+                            
+                            <div class="text-center pb-6 mb-6">
+                                <h3 class="text-2xl sm:text-3xl font-black tracking-widest text-indigo-950 uppercase mb-2">RECEIPT</h3>
+                                <div class="w-16 h-1 bg-indigo-200 mx-auto rounded-full mb-3"></div>
+                                <p class="text-xs sm:text-sm text-slate-500 font-medium" id="receiptDate">วันที่คิดเงิน</p>
                             </div>
 
-                            <div id="receiptTotals" class="space-y-4 mb-5 min-h-[80px]">
+                            <div id="receiptTotals" class="space-y-4 sm:space-y-5 mb-8 min-h-[80px]">
                                 </div>
 
-                            <div class="border-t-2 border-dashed border-slate-200 pt-5 text-xs sm:text-sm space-y-2.5 text-slate-500 font-medium mb-5">
-                                <div class="flex justify-between">
+                            <div class="border-t-[3px] border-dashed border-slate-200 mb-6"></div>
+
+                            <div class="text-sm space-y-3.5 text-slate-600 font-medium mb-6">
+                                <div class="flex justify-between items-center">
                                     <span>ยอดรวมอาหารดิบ:</span>
-                                    <span id="summaryRawSubtotal" class="text-slate-800">0.00.-</span>
+                                    <span id="summaryRawSubtotal" class="text-slate-800 font-semibold">0.00.-</span>
                                 </div>
-                                <div id="summaryItemDiscountRow" class="flex justify-between text-pink-500 hidden">
+                                <div id="summaryItemDiscountRow" class="flex justify-between items-center text-pink-500 hidden">
                                     <span>ส่วนลดรายเมนู:</span>
-                                    <span id="summaryItemDiscount">-0.00.-</span>
+                                    <span id="summaryItemDiscount" class="font-semibold">-0.00.-</span>
                                 </div>
-                                <div id="summaryDiscountRow" class="flex justify-between text-pink-500 hidden">
+                                <div id="summaryDiscountRow" class="flex justify-between items-center text-pink-500 hidden">
                                     <span>ส่วนลดท้ายบิล:</span>
-                                    <span id="summaryDiscount">-0.00.-</span>
+                                    <span id="summaryDiscount" class="font-semibold">-0.00.-</span>
                                 </div>
-                                <div class="flex justify-between">
+                                <div class="flex justify-between items-center">
                                     <span>Service Charge:</span>
-                                    <span id="summarySC" class="text-slate-800">0.00.-</span>
+                                    <span id="summarySC" class="text-slate-800 font-semibold">0.00.-</span>
                                 </div>
-                                <div class="flex justify-between">
+                                <div class="flex justify-between items-center">
                                     <span>VAT:</span>
-                                    <span id="summaryVat" class="text-slate-800">0.00.-</span>
-                                </div>
-                                
-                                <div class="flex justify-between items-end text-base sm:text-xl font-black text-indigo-950 pt-4 mt-2 border-t border-slate-100">
-                                    <span class="mb-0.5">ยอดสุทธิรวม:</span>
-                                    <span id="summaryTotal" class="text-indigo-600 text-2xl sm:text-3xl">0.00 <span class="text-sm font-bold">฿</span></span>
+                                    <span id="summaryVat" class="text-slate-800 font-semibold">0.00.-</span>
                                 </div>
                             </div>
 
-                            <div id="receiptQRCodeContainer" class="border-t-2 border-dashed border-slate-200 pt-6 mt-2 flex flex-col items-center justify-center hidden overflow-hidden">
-                                <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold mb-4 uppercase tracking-wider">Scan to Pay</span>
-                                <div class="p-2 bg-white border-2 border-slate-100 rounded-2xl shadow-inner">
-                                    <img id="receiptQRImg" src="" alt="Uploaded QR Code" class="w-52 h-52 sm:w-64 sm:h-64 object-contain rounded-xl">
+                            <div class="bg-indigo-50 rounded-2xl p-5 mt-2 flex justify-between items-center">
+                                <span class="text-base sm:text-lg font-bold text-indigo-900">ยอดสุทธิรวม:</span>
+                                <span id="summaryTotal" class="text-indigo-600 text-3xl sm:text-4xl font-black tracking-tight">0.00 <span class="text-lg font-bold">฿</span></span>
+                            </div>
+
+                            <div id="receiptQRCodeContainer" class="pt-8 mt-4 flex flex-col items-center justify-center hidden overflow-hidden">
+                                <span class="bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-xs font-bold mb-5 uppercase tracking-widest shadow-sm">📱 Scan to Pay</span>
+                                <div class="p-3 bg-white border-2 border-indigo-50 rounded-3xl shadow-md">
+                                    <img id="receiptQRImg" src="" alt="Uploaded QR Code" class="w-52 h-52 sm:w-64 sm:h-64 object-contain rounded-2xl">
                                 </div>
                             </div>
+
                         </div>
                     </div>
 
-                    <button id="downloadBtn" onclick="downloadReceipt()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-2xl shadow-xl shadow-indigo-300 transition-all flex items-center justify-center gap-2 active:scale-95 text-sm sm:text-base border border-indigo-400/50 relative overflow-hidden group mb-6">
+                    <button id="downloadBtn" onclick="downloadReceipt()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4.5 px-6 rounded-2xl shadow-xl shadow-indigo-300 transition-all flex items-center justify-center gap-2 active:scale-95 text-base sm:text-lg border border-indigo-400/50 relative overflow-hidden group mb-6">
                         <span class="absolute w-0 h-0 transition-all duration-500 ease-out bg-white rounded-full group-hover:w-56 group-hover:h-56 opacity-10"></span>
-                        <span class="relative" id="btnText">📥 บันทึก หรือ แชร์ใบเสร็จ</span>
+                        <span class="relative py-1" id="btnText">📥 บันทึกสลิป / แชร์เข้าไลน์</span>
                     </button>
                     
                 </div>
@@ -234,7 +239,6 @@
     <script>
         let members = [];
         let items = [];
-
         let uploadedQRBase64 = "";
 
         const updateDate = () => {
@@ -376,7 +380,6 @@
             container.innerHTML = items.map((item) => {
                 return `
                     <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-4 hover:shadow-md hover:border-indigo-50 transition-all">
-                        
                         <div class="flex justify-between items-center gap-3">
                             <div class="w-full relative">
                                 <input type="text" value="${item.name}" onchange="updateItemName(${item.id}, this.value)" class="w-full font-bold text-slate-800 bg-slate-50 border border-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:bg-white rounded-xl py-2 px-3 text-base transition-all" placeholder="ระบุชื่อเมนู...">
@@ -413,7 +416,6 @@
                                 `;
                             }).join('')}
                         </div>
-                        
                     </div>
                 `;
             }).join('');
@@ -550,14 +552,14 @@
 
                 if (personNet > 0) {
                     htmlReceipt += `
-                        <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+                        <div class="flex justify-between items-start border-b border-slate-100 pb-4 mb-4">
                             <div>
                                 <span class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> ${m}</span>
-                                <div class="text-[11px] text-slate-400 mt-1 pl-3">สุทธิก่อนภาษี: ${subtotalAfterItemDiscount.toFixed(2)} บ.</div>
+                                <div class="text-[11px] text-slate-400 mt-1.5 pl-3">สุทธิก่อนภาษี: ${subtotalAfterItemDiscount.toFixed(2)} บ.</div>
                             </div>
                             <div class="text-right">
                                 <span class="font-black text-indigo-900 text-base sm:text-lg">${personNet.toFixed(2)} ฿</span>
-                                <div class="text-[10px] text-slate-400 font-medium">(Vat/SC: ${(personSC + personVat).toFixed(2)} บ.)</div>
+                                <div class="text-[10px] text-slate-400 font-medium mt-0.5">(Vat/SC: ${(personSC + personVat).toFixed(2)} บ.)</div>
                             </div>
                         </div>
                     `;
@@ -600,9 +602,6 @@
             }
         }
 
-        // ==========================================
-        // 🚀 แก้ไขฟังก์ชันการ Save สลิปให้รองรับ iPhone (Web Share API)
-        // ==========================================
         function downloadReceipt() {
             updateDate();
             const receipt = document.getElementById('receiptCard');
@@ -610,20 +609,19 @@
             const downloadBtn = document.getElementById('downloadBtn');
             
             const originalText = btnText.innerHTML;
-            btnText.innerHTML = "⏳ กำลังประมวลผล...";
+            btnText.innerHTML = "⏳ กำลังสร้างใบเสร็จ...";
             downloadBtn.disabled = true;
 
-            // ยกเลิกขอบโค้งมนชั่วคราว เพื่อให้แคปภาพออกมาชัดเจน ไม่ติดขอบขาว
+            // ยกเลิกขอบโค้งชั่วคราวและเพิ่มสีพื้นหลังให้ชัดเจนตอนแคป
             receipt.style.borderRadius = '0px';
             receipt.style.border = 'none';
             
             html2canvas(receipt, {
-                scale: 2, // 💡 ลด Scale ลงมาเหลือ 2 เพื่อป้องกัน Browser บนมือถือ (Safari) Crash จากข้อจำกัด Memory
+                scale: 2,
                 backgroundColor: "#ffffff",
                 logging: false,
                 useCORS: true 
             }).then(canvas => {
-                // คืนค่า UI กลับเป็นเหมือนเดิมหลังแคปเสร็จ
                 receipt.style.borderRadius = '1.5rem';
                 receipt.style.border = '1px solid #f1f5f9';
                 btnText.innerHTML = originalText;
@@ -633,7 +631,6 @@
                     const fileName = `ShareBill_${Date.now()}.png`;
                     const file = new File([blob], fileName, { type: 'image/png' });
 
-                    // 💡 เช็กว่าเบราว์เซอร์รองรับ Web Share API ไหม (สำหรับ iOS/Mobile)
                     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                         navigator.share({
                             files: [file],
@@ -641,11 +638,9 @@
                             text: 'มาจ่ายตังค์ด้วยจ้า!'
                         }).catch((error) => {
                             console.log('Share canceled or failed:', error);
-                            // ถ้าแชร์ไม่ได้ หรือกดยกเลิก ให้ Fallback กลับไปดาวน์โหลดแบบปกติ
                             fallbackDownload(canvas, fileName);
                         });
                     } else {
-                        // 💻 ถ้าเล่นบน PC หรือเบราว์เซอร์ไม่รองรับ Share API ให้ใช้การดาวน์โหลดไฟล์ตรงๆ
                         fallbackDownload(canvas, fileName);
                     }
                 }, 'image/png');
@@ -654,11 +649,10 @@
                 console.error(err);
                 btnText.innerHTML = originalText;
                 downloadBtn.disabled = false;
-                alert("เกิดข้อผิดพลาดในการสร้างรูปภาพ ลองลดขนาดรูป QR Code แล้วลองใหม่นะครับ");
+                alert("เกิดข้อผิดพลาดในการสร้างรูปภาพครับ");
             });
         }
 
-        // ฟังก์ชันสำรองสำหรับดาวน์โหลดลงเครื่องตรงๆ
         function fallbackDownload(canvas, fileName) {
             const link = document.createElement('a');
             link.download = fileName;
