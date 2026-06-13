@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShareBill - หารตามจริง</title>
+    <title>ShareBill</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -163,7 +163,7 @@
                             </div>
 
                             <div id="receiptQRCodeContainer" class="pt-8 mt-4 flex flex-col items-center justify-center hidden overflow-hidden">
-                                <span class="bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-xs font-bold mb-5 uppercase tracking-widest shadow-sm">📱 Scan to Pay</span>
+                                <span class="bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-xs font-bold mb-5 uppercase tracking-widest shadow-sm">สเเกนจ่าย</span>
                                 <div class="p-3 bg-white border-2 border-indigo-50 rounded-3xl shadow-md">
                                     <img id="receiptQRImg" src="" alt="Uploaded QR Code" class="w-52 h-52 sm:w-64 sm:h-64 object-contain rounded-2xl">
                                 </div>
@@ -174,7 +174,7 @@
 
                     <button id="downloadBtn" onclick="downloadReceipt()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4.5 px-6 rounded-2xl shadow-xl shadow-indigo-300 transition-all flex items-center justify-center gap-2 active:scale-95 text-base sm:text-lg border border-indigo-400/50 relative overflow-hidden group mb-6">
                         <span class="absolute w-0 h-0 transition-all duration-500 ease-out bg-white rounded-full group-hover:w-56 group-hover:h-56 opacity-10"></span>
-                        <span class="relative py-1" id="btnText">📥 บันทึกสลิป / แชร์เข้าไลน์</span>
+                        <span class="relative py-1" id="btnText">บันทึกสลิป</span>
                     </button>
                     
                 </div>
@@ -200,7 +200,7 @@
             <div class="space-y-6">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">ชื่อ / ชื่อเล่น</label>
-                    <input type="text" id="newMemberName" placeholder="เช่น Alice, Bob" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-base font-medium transition-all" onkeydown="if(event.key === 'Enter') submitMember()">
+                    <input type="text" id="newMemberName" placeholder="ระบุชื่อเพื่อน" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-base font-medium transition-all" onkeydown="if(event.key === 'Enter') submitMember()">
                     <p id="modalError" class="text-xs font-medium text-rose-500 mt-2 hidden">⚠️ ชื่อนี้มีอยู่ในวงแล้ว หรือคุณลืมพิมพ์ชื่อ</p>
                 </div>
                 
@@ -224,7 +224,7 @@
             <div class="space-y-6">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">ชื่อรายการอาหาร</label>
-                    <input type="text" id="newItemName" placeholder="เช่น หมูกรอบคั่วพริกเกลือ" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-base font-medium transition-all" onkeydown="if(event.key === 'Enter') submitItem()">
+                    <input type="text" id="newItemName" placeholder="ระบุชื่อเมนูอาหาร" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-base font-medium transition-all" onkeydown="if(event.key === 'Enter') submitItem()">
                     <p id="itemModalError" class="text-xs font-medium text-rose-500 mt-2 hidden">⚠️ กรุณาระบุชื่อเมนูอาหาร</p>
                 </div>
                 
